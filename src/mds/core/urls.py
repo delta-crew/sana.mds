@@ -85,6 +85,9 @@ extra_patterns = patterns(
 
     #location
     url(r'^location/$', rsrc_location, name='location-list'),
+
+    # hooks/procedures
+    url(r'^hooks/procedures/$', rsrc_hooks, name='procedure-hook'),
 )
 
 # add the non-RESTful urls

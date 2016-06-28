@@ -41,7 +41,9 @@ __all__ = ['ConceptHandler',
            'DocHandler' ,
            'SessionHandler',
            'SubjectHandler',
-           'LocationHandler',]
+           'LocationHandler',
+           'HookHandler',
+]
 
 @logged     
 class SessionHandler(DispatchingHandler):
@@ -294,6 +296,18 @@ class CompoundFormHandler(object):
 def intake_handler(request,*args,**kwargs):
     pass
 
+@logged
+class HookHandler(DispatchingHandler):
+    allowed_methods = ('POST',)
+    fields = (
+        "hook",
+        "data",
+    )
+    signals = { LOGGER:( EventSignal(), EventSignalHandler(Event))}
 
+    def _retrieve_procedure(self, request):
+        data = request.data
+        procedure = Procedure.objects.create(title=data['title'], author=data['author'], description=data['description'], version=data['version'], src=data['src'])
+        procedure.save()
 
 
