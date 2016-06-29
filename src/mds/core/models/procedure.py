@@ -13,6 +13,7 @@ class Procedure(models.Model):
 
     class Meta:
         app_label = "core"
+
     uuid = models.SlugField(max_length=36, unique=True, default=make_uuid, editable=False)
     """ A universally unique identifier """
     
@@ -36,6 +37,12 @@ class Procedure(models.Model):
     
     src = models.FileField(upload_to='core/procedure', blank=True)
     """ File storage location for the procedure """
+    
+    remote_src = models.URLField(max_length=200, blank=True)
+    """ Remote location of the procedure """
+
+    remote_uuid = models.SlugField(max_length=36, unique=True, editable=False)
+    """ Remote uuid of the procedure """
 
     voided = models.BooleanField(default=False)
 

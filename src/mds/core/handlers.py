@@ -6,6 +6,7 @@ Created on Feb 29, 2012
 '''
 import logging
 import cjson
+import urllib2
 
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -13,6 +14,7 @@ from django.contrib.auth.models import User
 
 from piston.handler import BaseHandler
 from piston.resource import Resource
+from piston.utils import rc
 
 from mds.api import do_authenticate, LOGGER
 from mds.api.contrib import backends
@@ -235,7 +237,15 @@ class ProcedureHandler(DispatchingHandler):
         """
         model = getattr(self.__class__, 'model')
         obj =  model.objects.get(uuid=uuid)
-        return open(obj.src.path).read()
+        if obj.src:
+            return open(obj.src.path).read()
+        elif obj.remote_src:
+            print obj
+            req = urllib2.Request(obj.remote_src)
+            req.add_header('Authorization', 'Token {0}'.format(settings.PROTOCOL_BUILDER_TOKEN))
+            print settings.PROTOCOL_BUILDER_TOKEN
+            content = urllib2.urlopen(req)
+            return content.read()
 
 @logged
 class SubjectHandler(DispatchingHandler):
@@ -303,11 +313,60 @@ class HookHandler(DispatchingHandler):
         "hook",
         "data",
     )
-    signals = { LOGGER:( EventSignal(), EventSignalHandler(Event))}
+    model = Procedure
+    signals = { LOGGER:( EventSignal(), EventSignalHandler(Event) ) }
 
-    def _retrieve_procedure(self, request):
-        data = request.data
-        procedure = Procedure.objects.create(title=data['title'], author=data['author'], description=data['description'], version=data['version'], src=data['src'])
-        procedure.save()
+    # POST /hooks/protocol_builder
+    def create(self, request):
+        print request
+        print request.content_type
+        print request.data
 
+        # if there is data which has been sent up
+        if request.content_type:
+            print '?'
 
+            payload = request.data
+            event = payload['hook']['event']
+            data = payload['data']
+
+            print event
+            model = getattr(self.__class__, 'model')
+            print model
+
+            # TODO retrieve raw data from protocol builder so that we can
+            # avoid attack
+            
+            # procedure has been added
+            if event == 'procedure.added':
+                print 'wtf'
+                try:
+                    print data
+                    procedure = model.objects.create(remote_uuid=data['uuid'], title=data['title'], author=data['author'], remote_src=data['remote_src'])
+                except e:
+                    print e
+                print 'created'
+                procedure.save()
+                print '!!added'
+                return rc.CREATED
+            
+            # procedure has been updated
+            if event == 'procedure.changed':
+                procedure = model.objects.get(remote_uuid=data['uuid'])
+                procedure.title = data['title']
+                procedure.author = data['author']
+                procedure.save()
+                print '!!changed'
+                return rc.CREATED
+            
+            # procedure has been removed
+            if event == 'procedure.removed':
+                procedure = model.objects.get(remote_uuid=data['uuid'])
+                procedure.delete()
+                print '!!removed'
+                return rc.CREATED
+
+            # ... other events
+        
+        # perhaps this isn't the best reutrn value
+        return  rc.NOT_FOUND
