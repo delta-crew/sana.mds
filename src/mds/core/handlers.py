@@ -11,6 +11,7 @@ import urllib2
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.core.cache import cache
 
 from piston.handler import BaseHandler
 from piston.resource import Resource
@@ -241,11 +242,16 @@ class ProcedureHandler(DispatchingHandler):
             return open(obj.src.path).read()
         elif obj.remote_src:
             print obj
-            req = urllib2.Request(obj.remote_src)
-            req.add_header('Authorization', 'Token {0}'.format(settings.PROTOCOL_BUILDER_TOKEN))
-            print settings.PROTOCOL_BUILDER_TOKEN
-            content = urllib2.urlopen(req)
-            return content.read()
+            xml = cache.get(uuid)
+            if None == xml: 
+                req = urllib2.Request(obj.remote_src)
+                req.add_header('Authorization', 'Token {0}'.format(settings.PROTOCOL_BUILDER_TOKEN))
+                print settings.PROTOCOL_BUILDER_TOKEN
+                content = urllib2.urlopen(req)
+                xml = content.read()
+            # cache the retrieved xml for 1 hour
+            cache.set(uuid, xml, 3600)
+            return xml
 
 @logged
 class SubjectHandler(DispatchingHandler):
@@ -357,6 +363,8 @@ class HookHandler(DispatchingHandler):
                 procedure.author = data['author']
                 procedure.save()
                 print '!!changed'
+                # remove the procedure from the cache
+                cache.delete(uuid)
                 return rc.CREATED
             
             # procedure has been removed
@@ -364,6 +372,8 @@ class HookHandler(DispatchingHandler):
                 procedure = model.objects.get(remote_uuid=data['uuid'])
                 procedure.delete()
                 print '!!removed'
+                # remove the procedure from the cache
+                cache.delete(uuid)
                 return rc.CREATED
 
             # ... other events

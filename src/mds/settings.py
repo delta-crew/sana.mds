@@ -44,6 +44,14 @@ DATABASES = {
     },
 }
 
+# Redis caching
+CACHES = {
+        'default': {
+            'BACKEND': 'redis_cache.RedisCache',
+            'LOCATION': '/var/run/redis/redis.sock',
+        },
+}
+
 TIME_ZONE = 'America/Toronto'
 """Local time zone for this installation. Choices can be found here:
 
