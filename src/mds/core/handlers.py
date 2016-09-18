@@ -249,8 +249,8 @@ class ProcedureHandler(DispatchingHandler):
                 print settings.PROTOCOL_BUILDER_TOKEN
                 content = urllib2.urlopen(req)
                 xml = content.read()
-            # cache the retrieved xml for 1 hour
-            cache.set(uuid, xml, 3600)
+            # cache the retrieved xml for length specified in local settings
+            cache.set(uuid, xml, settings.PROCEDURE_CACHE_TIMEOUT)
             return xml
 
 @logged

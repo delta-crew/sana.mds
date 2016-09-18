@@ -115,6 +115,10 @@ FLUSH_BINARYRESOURCE = False
 FLUSH_NOTIFICATION = False
 # Set to True to flush notification data on successful send.""" 
 
+### Cache Configuration
+PROCEDURE_CACHE_TIMEOUT = 86400
+"""Length of time to cache procedures in seconds"""
+
 
 CONTENT_TYPES = (("text/plain", "Text"),
                  ("image/jpg","Image"),
