@@ -362,9 +362,12 @@ class HookHandler(DispatchingHandler):
                 procedure.title = data['title']
                 procedure.author = data['author']
                 procedure.save()
-                print '!!changed'
+                print '!!changed it'
                 # remove the procedure from the cache
-                cache.delete(uuid)
+		try:
+                	cache.delete(procedure.uuid)
+		except e:
+			print e
                 return rc.CREATED
             
             # procedure has been removed
@@ -373,7 +376,10 @@ class HookHandler(DispatchingHandler):
                 procedure.delete()
                 print '!!removed'
                 # remove the procedure from the cache
-                cache.delete(uuid)
+		try:
+                	cache.delete(procedure.uuid)
+		except e:
+			print e
                 return rc.CREATED
 
             # ... other events

@@ -96,7 +96,7 @@ EMAIL_USE_TLS = True
 """Check with mail host if encryption is supported"""
 
 ### Protocol Builder Configuration
-PROTOCOL_BUILDER_TOKEN = 'ad9f2708cc2c6eb565c941aa7d76125bd47cf8db'
+PROTOCOL_BUILDER_TOKEN = '2a72eeef0e3bce71cca8580ede91b824e7e0d1f3'
 
 REVIEW_URL_TEMPLATE = 'https://{hostname}/mds/web/forms/surgeon/review/{uuid}/'
 REVIEW_HOSTNAME = ''
